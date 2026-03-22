@@ -11,7 +11,14 @@ export async function GET(req: Request) {
   const comentarios = await db.comentario.findMany({
     where: { featureId },
     include: { autor: { select: { id: true, name: true, username: true, avatarUrl: true, image: true } } },
-    orderBy: [{ upvotes: "desc" }, { createdAt: "asc" }],
+  });
+
+  // Ordenar por saldo (upvotes - downvotes) desc, depois por data asc
+  comentarios.sort((a, b) => {
+    const saldoA = a.upvotes - a.downvotes;
+    const saldoB = b.upvotes - b.downvotes;
+    if (saldoB !== saldoA) return saldoB - saldoA;
+    return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
   });
 
   return NextResponse.json(comentarios);

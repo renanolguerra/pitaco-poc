@@ -50,6 +50,7 @@ model User {
   empresa                Empresa?
   comentarios            Comentario[]
   votosComentario        VotoComentario[]
+  votosFeature           VotoFeature[]
   createdAt              DateTime  @default(now())
   updatedAt              DateTime  @updatedAt
 }
@@ -110,21 +111,22 @@ model Roadmap {
 }
 
 model Feature {
-  id          String        @id @default(cuid())
-  roadmapId   String
-  titulo      String
-  descricao   String?       @db.Text
-  dataInicio  DateTime?
-  dataFim     DateTime?
-  status      FeatureStatus @default(PLANEJADO)
-  likes       Int           @default(0)
-  dislikes    Int           @default(0)
-  comentario  String?       @db.Text
-  ordem       Int           @default(0)
-  roadmap     Roadmap       @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
-  comentarios Comentario[]
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  id            String        @id @default(cuid())
+  roadmapId     String
+  titulo        String
+  descricao     String?       @db.Text
+  dataInicio    DateTime?
+  dataFim       DateTime?
+  status        FeatureStatus @default(PLANEJADO)
+  likes         Int           @default(0)
+  dislikes      Int           @default(0)
+  comentario    String?       @db.Text
+  ordem         Int           @default(0)
+  roadmap       Roadmap       @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
+  comentarios   Comentario[]
+  votosFeature  VotoFeature[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 }
 
 model Comentario {
@@ -141,12 +143,23 @@ model Comentario {
 }
 
 model VotoComentario {
-  id          String    @id @default(cuid())
+  id           String     @id @default(cuid())
   comentarioId String
-  usuarioId   String
-  tipo        VotoTipo
-  comentario  Comentario @relation(fields: [comentarioId], references: [id], onDelete: Cascade)
-  usuario     User       @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  usuarioId    String
+  tipo         VotoTipo
+  comentario   Comentario @relation(fields: [comentarioId], references: [id], onDelete: Cascade)
+  usuario      User       @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
 
   @@unique([comentarioId, usuarioId])
+}
+
+model VotoFeature {
+  id        String   @id @default(cuid())
+  featureId String
+  usuarioId String
+  tipo      VotoTipo
+  feature   Feature  @relation(fields: [featureId], references: [id], onDelete: Cascade)
+  usuario   User     @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@unique([featureId, usuarioId])
 }

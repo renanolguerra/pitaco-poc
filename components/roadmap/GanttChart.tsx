@@ -2,7 +2,7 @@
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, useRef, useCallback } from "react";
-import type { Feature } from "@prisma/client";
+import type { Feature, FeatureStatus } from "@prisma/client";
 import FeatureModal from "./FeatureModal";
 
 type ViewMode = "mensal" | "trimestral" | "anual";
@@ -27,10 +27,20 @@ const STATUS_LABELS: Record<string, string> = {
   CONCLUIDO: "Concluído",
 };
 
+type StatusFilter = FeatureStatus | "TODOS";
+
+const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
+  { value: "TODOS",        label: "Todos" },
+  { value: "PLANEJADO",    label: "Planejado" },
+  { value: "EM_ANDAMENTO", label: "Em andamento" },
+  { value: "CONCLUIDO",    label: "Concluído" },
+];
+
 interface Props {
   roadmapId: string;
   initialFeatures: Feature[];
   isOwner: boolean;
+  userId?: string;
 }
 
 interface HoverInfo {
@@ -126,11 +136,12 @@ function GanttTooltip({ info }: { info: HoverInfo }) {
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
-export default function GanttChart({ roadmapId, initialFeatures, isOwner }: Props) {
+export default function GanttChart({ roadmapId, initialFeatures, isOwner, userId }: Props) {
   const qc = useQueryClient();
   const [selectedFeature, setSelectedFeature] = useState<Feature | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("mensal");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("TODOS");
   const [hoverInfo, setHoverInfo] = useState<HoverInfo | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -150,7 +161,9 @@ export default function GanttChart({ roadmapId, initialFeatures, isOwner }: Prop
     setShowCreate(false);
   }, [qc, roadmapId]);
 
-  const featuresWithDates = features.filter(f => f.dataInicio && f.dataFim);
+  const featuresWithDates = features
+    .filter(f => f.dataInicio && f.dataFim)
+    .filter(f => statusFilter === "TODOS" || f.status === statusFilter);
 
   // ── Empty state ──────────────────────────────────────────────────────────────
   if (featuresWithDates.length === 0) {
@@ -229,21 +242,40 @@ export default function GanttChart({ roadmapId, initialFeatures, isOwner }: Prop
           <div />
         )}
 
-        {/* View mode toggle */}
-        <div className="flex bg-secondary rounded-lg p-1 gap-1 text-sm">
-          {(["mensal", "trimestral", "anual"] as ViewMode[]).map(v => (
-            <button
-              key={v}
-              onClick={() => setViewMode(v)}
-              className={`px-3 py-1 rounded-md font-medium transition-all capitalize ${
-                viewMode === v
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {v}
-            </button>
-          ))}
+        <div className="flex gap-2 flex-wrap">
+          {/* Status filter */}
+          <div className="flex bg-secondary rounded-lg p-1 gap-1 text-sm">
+            {STATUS_FILTERS.map(f => (
+              <button
+                key={f.value}
+                onClick={() => setStatusFilter(f.value)}
+                className={`px-3 py-1 rounded-md font-medium transition-all whitespace-nowrap ${
+                  statusFilter === f.value
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+
+          {/* View mode toggle */}
+          <div className="flex bg-secondary rounded-lg p-1 gap-1 text-sm">
+            {(["mensal", "trimestral", "anual"] as ViewMode[]).map(v => (
+              <button
+                key={v}
+                onClick={() => setViewMode(v)}
+                className={`px-3 py-1 rounded-md font-medium transition-all capitalize ${
+                  viewMode === v
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {v}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -419,6 +451,7 @@ export default function GanttChart({ roadmapId, initialFeatures, isOwner }: Prop
           roadmapId={roadmapId}
           feature={selectedFeature}
           isOwner={isOwner}
+          userId={userId}
           onClose={() => setSelectedFeature(null)}
           onSaved={onSaved}
         />

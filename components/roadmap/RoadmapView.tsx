@@ -74,6 +74,7 @@ export default function RoadmapView({ roadmap, isOwner, userId }: Props) {
           roadmapId={roadmap.id}
           initialFeatures={roadmap.features}
           isOwner={isOwner}
+          userId={userId}
         />
       )}
     </div>
