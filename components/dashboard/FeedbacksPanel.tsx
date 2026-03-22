@@ -159,7 +159,7 @@ export default function FeedbacksPanel({ empresa }: Props) {
   const [drawerFeature, setDrawerFeature] = useState<DrawerFeature | null>(null);
 
   const { data } = useQuery({
-    queryKey: ["roadmap", selectedRoadmapId, "features"],
+    queryKey: ["feedbacks-panel", selectedRoadmapId],
     queryFn: async () => {
       if (!selectedRoadmapId) return { features: [] };
       const res = await fetch(`/api/roadmaps/${selectedRoadmapId}`);

@@ -87,8 +87,8 @@ export default function KanbanBoard({ roadmapId, initialFeatures, isOwner, userI
           </button>
         )}
 
-        {/* Status filter */}
-        <div className="flex bg-secondary rounded-lg p-1 gap-1 text-sm ml-auto">
+        {/* Status filter — desktop only (mobile usa as abas) */}
+        <div className="hidden sm:flex bg-secondary rounded-lg p-1 gap-1 text-sm ml-auto">
           {FILTERS.map(f => (
             <button
               key={f.value}
