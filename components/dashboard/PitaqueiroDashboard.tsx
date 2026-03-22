@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import AvatarImg from "@/components/ui/AvatarImg";
 
 interface Props { userId: string; }
 
@@ -42,11 +42,7 @@ export default function PitaqueiroDashboard({ userId }: Props) {
               href={`/dashboard/empresa/${e.id}`}
               className="border border-border rounded-xl p-4 flex flex-col items-center gap-3 hover:shadow-md transition-shadow bg-card"
             >
-              {e.logoUrl ? (
-                <Image src={e.logoUrl} alt={e.nome} width={48} height={48} className="rounded-full object-cover w-12 h-12" />
-              ) : (
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-2xl">🏢</div>
-              )}
+              <AvatarImg src={e.logoUrl} alt={e.nome} size={48} fallback="🏢" />
               <span className="text-sm font-medium text-foreground text-center">{e.nome}</span>
             </Link>
           ))}

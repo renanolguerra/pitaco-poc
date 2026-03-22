@@ -7,15 +7,19 @@ import type { User } from "@prisma/client";
 
 interface Props {
   user: User & { empresa?: { nome: string; logoUrl?: string | null } | null };
+  googleImage?: string | null;
 }
 
-export default function PerfilClient({ user }: Props) {
+export default function PerfilClient({ user, googleImage }: Props) {
   const isEmpresa = user.userType === "EMPRESA";
 
   const [nome, setNome] = useState(user.empresa?.nome ?? user.name ?? "");
   const [username, setUsername] = useState(user.username ?? "");
   const [logoUrl, setLogoUrl] = useState(user.empresa?.logoUrl ?? user.avatarUrl ?? "");
   const [imgError, setImgError] = useState(false);
+
+  // URL efetiva para preview: customizada → foto Google → nada
+  const previewSrc = logoUrl || googleImage || "";
 
   // Ao trocar URL, reseta o erro de imagem
   function handleUrlChange(url: string) {
@@ -46,13 +50,13 @@ export default function PerfilClient({ user }: Props) {
       </h1>
 
       <div className="border border-border rounded-xl p-4 sm:p-6 space-y-4">
-        {/* Preview da imagem com fallback */}
-        {logoUrl && !imgError && (
-          <div className="flex justify-center">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
+        {/* Preview da imagem */}
+        <div className="flex justify-center">
+          {previewSrc && !imgError ? (
+            // eslint-disable-next-line @next/next/no-img-element
             <img
-              key={logoUrl}
-              src={logoUrl}
+              key={previewSrc}
+              src={previewSrc}
               alt={isEmpresa ? "Logo" : "Avatar"}
               width={80}
               height={80}
@@ -60,17 +64,12 @@ export default function PerfilClient({ user }: Props) {
               onError={() => setImgError(true)}
               className="rounded-full w-20 h-20 object-cover border border-border"
             />
-          </div>
-        )}
-
-        {/* Fallback quando URL inválida */}
-        {logoUrl && imgError && (
-          <div className="flex justify-center">
+          ) : (
             <div className="w-20 h-20 rounded-full bg-secondary border border-border flex items-center justify-center text-2xl">
               {isEmpresa ? "🏢" : "👤"}
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {isEmpresa ? (
           <>
@@ -95,10 +94,9 @@ export default function PerfilClient({ user }: Props) {
                 onChange={(e) => handleUrlChange(e.target.value)}
               />
               <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
-                Use uma URL direta de imagem (terminada em .jpg, .png ou .webp). Serviços
-                recomendados: <strong>imgur.com</strong> (faça upload e copie o link direto),
-                postimages.org ou cloudinary.com. Evite URLs do Google Drive ou Dropbox — elas
-                não funcionam como imagem direta.
+                Use uma URL <strong>direta</strong> de imagem (ex: <code className="bg-muted px-1 rounded">https://i.imgur.com/abc123.png</code>).{" "}
+                No Imgur: faça upload → clique na imagem → clique em &quot;Copy Link&quot; → use o link que começa com <code className="bg-muted px-1 rounded">i.imgur.com</code>.
+                Não use links de álbum (<code className="bg-muted px-1 rounded">imgur.com/a/…</code>) — eles não funcionam como imagem direta.
               </p>
             </div>
           </>
@@ -129,9 +127,9 @@ export default function PerfilClient({ user }: Props) {
                 onChange={(e) => handleUrlChange(e.target.value)}
               />
               <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
-                Use uma URL direta de imagem (terminada em .jpg, .png ou .webp). Você pode usar
-                sua foto do GitHub (<strong>github.com/seu-usuario.png</strong>) ou fazer upload
-                em imgur.com e copiar o link direto.
+                Use uma URL <strong>direta</strong> de imagem (ex: <code className="bg-muted px-1 rounded">https://i.imgur.com/abc123.png</code>).{" "}
+                No Imgur: faça upload → clique na imagem → clique em &quot;Copy Link&quot; → use o link que começa com <code className="bg-muted px-1 rounded">i.imgur.com</code>.
+                Não use links de álbum (<code className="bg-muted px-1 rounded">imgur.com/a/…</code>).
               </p>
             </div>
           </>

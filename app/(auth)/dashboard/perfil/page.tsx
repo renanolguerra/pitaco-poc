@@ -14,5 +14,5 @@ export default async function PerfilPage() {
 
   if (!user) redirect("/login");
 
-  return <PerfilClient user={user} />;
+  return <PerfilClient user={user} googleImage={session.user.image ?? null} />;
 }

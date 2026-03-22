@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import Link from "next/link";
-import Image from "next/image";
+import AvatarImg from "@/components/ui/AvatarImg";
 
 export default async function EmpresaPublicPage({ params }: { params: { id: string } }) {
   const session = await auth();
@@ -23,11 +23,7 @@ export default async function EmpresaPublicPage({ params }: { params: { id: stri
   return (
     <div>
       <div className="flex items-center gap-4 mb-8">
-        {empresa.logoUrl ? (
-          <Image src={empresa.logoUrl} alt={empresa.nome} width={64} height={64} className="rounded-full w-16 h-16 object-cover" />
-        ) : (
-          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-3xl">🏢</div>
-        )}
+        <AvatarImg src={empresa.logoUrl} alt={empresa.nome} size={64} fallback="🏢" />
         <div>
           <h1 className="text-2xl font-bold text-foreground">{empresa.nome}</h1>
           <p className="text-sm text-muted-foreground">{empresa.roadmaps.length} roadmap{empresa.roadmaps.length !== 1 ? "s" : ""} publicado{empresa.roadmaps.length !== 1 ? "s" : ""}</p>
