@@ -1,0 +1,152 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL")
+}
+
+enum Plan {
+  FREE
+  TRIAL
+  PRO
+}
+
+enum UserType {
+  EMPRESA
+  PITAQUEIRO
+}
+
+enum FeatureStatus {
+  PLANEJADO
+  EM_ANDAMENTO
+  CONCLUIDO
+}
+
+enum VotoTipo {
+  UP
+  DOWN
+}
+
+model User {
+  id                     String    @id @default(cuid())
+  name                   String?
+  email                  String    @unique
+  emailVerified          DateTime?
+  image                  String?
+  username               String?   @unique
+  avatarUrl              String?
+  stripeCustomerId       String?   @unique
+  stripePriceId          String?
+  stripeSubscriptionId   String?   @unique
+  stripeCurrentPeriodEnd DateTime?
+  trialEndsAt            DateTime?
+  plan                   Plan      @default(FREE)
+  userType               UserType?
+  accounts               Account[]
+  sessions               Session[]
+  empresa                Empresa?
+  comentarios            Comentario[]
+  votosComentario        VotoComentario[]
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Empresa {
+  id        String    @id @default(cuid())
+  userId    String    @unique
+  nome      String
+  logoUrl   String?
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roadmaps  Roadmap[]
+  createdAt DateTime  @default(now())
+}
+
+model Roadmap {
+  id        String    @id @default(cuid())
+  empresaId String
+  nome      String
+  publicado Boolean   @default(false)
+  empresa   Empresa   @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  features  Feature[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Feature {
+  id          String        @id @default(cuid())
+  roadmapId   String
+  titulo      String
+  descricao   String?       @db.Text
+  dataInicio  DateTime?
+  dataFim     DateTime?
+  status      FeatureStatus @default(PLANEJADO)
+  likes       Int           @default(0)
+  dislikes    Int           @default(0)
+  comentario  String?       @db.Text
+  ordem       Int           @default(0)
+  roadmap     Roadmap       @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
+  comentarios Comentario[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model Comentario {
+  id        String           @id @default(cuid())
+  featureId String
+  autorId   String
+  texto     String           @db.Text
+  upvotes   Int              @default(0)
+  downvotes Int              @default(0)
+  feature   Feature          @relation(fields: [featureId], references: [id], onDelete: Cascade)
+  autor     User             @relation(fields: [autorId], references: [id], onDelete: Cascade)
+  votos     VotoComentario[]
+  createdAt DateTime         @default(now())
+}
+
+model VotoComentario {
+  id          String    @id @default(cuid())
+  comentarioId String
+  usuarioId   String
+  tipo        VotoTipo
+  comentario  Comentario @relation(fields: [comentarioId], references: [id], onDelete: Cascade)
+  usuario     User       @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@unique([comentarioId, usuarioId])
+}
