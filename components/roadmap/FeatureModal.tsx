@@ -91,8 +91,8 @@ export default function FeatureModal({ roadmapId, feature, isOwner, userId, onCl
   });
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center sm:p-4" onClick={onClose}>
+      <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-xl w-full sm:max-w-2xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold text-foreground">
@@ -116,7 +116,7 @@ export default function FeatureModal({ roadmapId, feature, isOwner, userId, onCl
                 value={descricao}
                 onChange={e => setDescricao(e.target.value)}
               />
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs text-muted-foreground mb-1 block">Data início</label>
                   <input type="date" className="w-full border border-border rounded-lg px-3 py-2 text-sm" value={dataInicio} onChange={e => setDataInicio(e.target.value)} />

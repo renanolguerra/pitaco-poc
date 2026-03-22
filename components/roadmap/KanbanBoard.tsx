@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import type { Feature, FeatureStatus } from "@prisma/client";
 import FeatureCard from "./FeatureCard";
 import FeatureModal from "./FeatureModal";
+import { useIsMobile } from "@/hooks/useMediaQuery";
 
 const COLUMNS: { status: FeatureStatus; label: string; color: string }[] = [
   { status: "PLANEJADO", label: "Planejado", color: "text-status-planned" },
@@ -25,6 +26,8 @@ export default function KanbanBoard({ roadmapId, initialFeatures, isOwner, userI
   const [selectedFeature, setSelectedFeature] = useState<Feature | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [draggedId, setDraggedId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<FeatureStatus>("PLANEJADO");
+  const isMobile = useIsMobile();
 
   const { data: features = initialFeatures } = useQuery<Feature[]>({
     queryKey: ["roadmap", roadmapId, "features"],
@@ -56,31 +59,47 @@ export default function KanbanBoard({ roadmapId, initialFeatures, isOwner, userI
     setDraggedId(null);
   }
 
+  const activeCol = COLUMNS.find((c) => c.status === activeTab)!;
+
   return (
     <div>
+      {/* Botão nova feature */}
       {isOwner && (
         <div className="mb-4">
           <button
             onClick={() => setShowCreate(true)}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
+            className="w-full sm:w-auto px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
           >
             + Nova feature
           </button>
         </div>
       )}
 
-      <div className="grid grid-cols-3 gap-4">
-        {COLUMNS.map((col) => (
-          <div
-            key={col.status}
-            className="bg-secondary rounded-xl p-4 min-h-[400px]"
-            onDragOver={handleDragOver}
-            onDrop={() => handleDrop(col.status)}
-          >
-            <h3 className={`font-semibold text-sm mb-3 ${col.color}`}>{col.label}</h3>
+      {/* ─── Mobile: tabs + coluna única ─── */}
+      {isMobile && (
+        <>
+          <div className="flex border border-border rounded-lg overflow-hidden mb-4">
+            {COLUMNS.map((col) => (
+              <button
+                key={col.status}
+                onClick={() => setActiveTab(col.status)}
+                className={`flex-1 py-2 text-xs font-medium transition-colors ${
+                  activeTab === col.status
+                    ? "bg-primary text-primary-foreground"
+                    : "hover:bg-secondary text-foreground"
+                }`}
+              >
+                {col.label}
+              </button>
+            ))}
+          </div>
+          <div className="bg-secondary rounded-xl p-4 min-h-[300px]">
+            <h3 className={`font-semibold text-sm mb-3 ${activeCol.color}`}>
+              {activeCol.label}
+            </h3>
             <div className="space-y-3">
               {features
-                .filter((f) => f.status === col.status)
+                .filter((f) => f.status === activeTab)
                 .map((feature) => (
                   <FeatureCard
                     key={feature.id}
@@ -89,15 +108,53 @@ export default function KanbanBoard({ roadmapId, initialFeatures, isOwner, userI
                     userId={userId}
                     roadmapId={roadmapId}
                     onClick={() => setSelectedFeature(feature)}
-                    onDragStart={() => isOwner && handleDragStart(feature.id)}
-                    draggable={isOwner}
+                    onDragStart={() => {}}
+                    draggable={false}
                   />
                 ))}
+              {features.filter((f) => f.status === activeTab).length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-10">
+                  Nenhuma feature aqui ainda
+                </p>
+              )}
             </div>
           </div>
-        ))}
-      </div>
+        </>
+      )}
 
+      {/* ─── Desktop: 3 colunas ─── */}
+      {!isMobile && (
+        <div className="grid grid-cols-3 gap-4">
+          {COLUMNS.map((col) => (
+            <div
+              key={col.status}
+              className="bg-secondary rounded-xl p-4 min-h-[400px]"
+              onDragOver={handleDragOver}
+              onDrop={() => handleDrop(col.status)}
+            >
+              <h3 className={`font-semibold text-sm mb-3 ${col.color}`}>{col.label}</h3>
+              <div className="space-y-3">
+                {features
+                  .filter((f) => f.status === col.status)
+                  .map((feature) => (
+                    <FeatureCard
+                      key={feature.id}
+                      feature={feature}
+                      isOwner={isOwner}
+                      userId={userId}
+                      roadmapId={roadmapId}
+                      onClick={() => setSelectedFeature(feature)}
+                      onDragStart={() => isOwner && handleDragStart(feature.id)}
+                      draggable={isOwner}
+                    />
+                  ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Modais */}
       {showCreate && isOwner && (
         <FeatureModal
           roadmapId={roadmapId}

@@ -21,9 +21,12 @@ export default async function DashboardLayout({ children }: { children: React.Re
   return (
     <div className="flex h-screen bg-background">
       <Sidebar user={user} />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <TrialBanner user={user} />
-        <main className="flex-1 overflow-auto p-6">
+      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+        {/* Espaçador para a top bar fixa no mobile */}
+        <div className="h-14 flex-shrink-0 md:hidden" />
+        {/* TrialBanner apenas para empresas */}
+        {user.userType === "EMPRESA" && <TrialBanner user={user} />}
+        <main className="flex-1 overflow-auto p-4 md:p-6">
           {children}
         </main>
       </div>
